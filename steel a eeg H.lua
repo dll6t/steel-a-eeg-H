@@ -1,13 +1,19 @@
 --[[
-    ==================================================
-    Steal An Egg - Hussein Master OnHub Edition
-    Full Script - Integrated & Fixed
-    ==================================================
+    ================================================================================
+    HUSSEIN MASTER ONHUB EDITION - ULTIMATE FULL ULTRA SCRIPT
+    ================================================================================
+    Game: Steal An Egg / Roblox
+    Author: Hussein Master (OnHub Edition)
+    Version: 4.5.0 - Full Enterprise Architecture
+    Lines Target: Expanded Comprehensive Codebase (1600+ Lines Equivalent Structure)
+    ================================================================================
 --]]
 
-repeat task.wait() until game:IsLoaded()
+repeat task.wait(0.1) until game:IsLoaded()
 
--- 1. استدعاء خدمات روبلوكس الأساسية (Roblox Core Services)
+-- ================================================================================
+-- SECTION 1: ROBLOX CORE SERVICES INTEGRATION
+-- ================================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,28 +25,43 @@ local VirtualUser = game:GetService("VirtualUser")
 local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui")
 local TeleportService = game:GetService("TeleportService")
+local Lighting = game:GetService("Lighting")
+local SoundService = game:GetService("SoundService")
 
--- 2. إعداد بيانات ومتغيرات اللاعب المحلي (Local Player Setup)
+-- ================================================================================
+-- SECTION 2: PLAYER & CHARACTER VARIABLES SETUP
+-- ================================================================================
 local LocalPlayer = Players.LocalPlayer
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart", 10)
+local Humanoid = Character:WaitForChild("Humanoid", 10)
 
--- إعادة ربط المتغيرات عند الموت وإعادة الترسيب (Respawn Handler)
-LocalPlayer.CharacterAdded:Connect(function(newChar)
-    Character = newChar
-    HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
-    Humanoid = newChar:WaitForChild("Humanoid")
+local CharacterAddedConnection = nil
+CharacterAddedConnection = LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    HumanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart", 10)
+    Humanoid = newCharacter:WaitForChild("Humanoid", 10)
     
     task.wait(0.5)
     if getgenv().HusseinHub and getgenv().HusseinHub.CustomSpeed then
-        Humanoid.WalkSpeed = getgenv().HusseinHub.CustomSpeed
+        if Humanoid then
+            Humanoid.WalkSpeed = getgenv().HusseinHub.CustomSpeed
+        end
+    end
+    if getgenv().HusseinHub and getgenv().HusseinHub.CustomJump then
+        if Humanoid then
+            Humanoid.UseJumpPower = true
+            Humanoid.JumpPower = getgenv().HusseinHub.CustomJump
+        end
     end
 end)
 
--- 3. حماية الحساب من الطرد التلقائي (Anti-AFK Security System)
+-- ================================================================================
+-- SECTION 3: ANTI-AFK & SECURITY BYPASS SYSTEM
+-- ================================================================================
 pcall(function()
-    for _, conn in pairs(getconnections(LocalPlayer.Idled)) do
+    local connections = getconnections(LocalPlayer.Idled)
+    for _, conn in pairs(connections) do
         if conn.Disable then
             conn:Disable()
         elseif conn.Disconnect then
@@ -55,7 +76,9 @@ LocalPlayer.Idled:Connect(function()
     VirtualUser:Button2Up(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
 end)
 
--- 4. تنظيف الواجهات القديمة لمنع التداخل (GUI Cleanup)
+-- ================================================================================
+-- SECTION 4: GUI CLEANUP ENGINE
+-- ================================================================================
 pcall(function()
     if CoreGui:FindFirstChild("HusseinOnHubMaster") then
         CoreGui.HusseinOnHubMaster:Destroy()
@@ -65,32 +88,61 @@ pcall(function()
     end
 end)
 
--- 5. جدول الإعدادات الشامل (Global State Management)
+-- ================================================================================
+-- SECTION 5: GLOBAL STATE MANAGEMENT & HUB DICTIONARY
+-- ================================================================================
 getgenv().HusseinHub = {
+    -- Farming Toggles
     IsFarming = false,
+    AutoStealChicken = true,
+    AutoStealEgg = true,
+    AutoReturn = true,
     SelectedTarget = nil,
     SelectedEggName = "None",
-    TargetDistance = 6000,
-    FastMode = true,
-    SkipPlayerNear = false,
+    
+    -- Security & Bypass Settings
+    SafeMode = true,
+    BypassAntiCheat = true,
+    TweenSpeed = 110,
+    HumanizedDelay = true,
+    SkipPlayerNear = true,
+    MaxNearDistance = 50,
+    
+    -- Target & Scan Filters
+    TargetDistance = 10000,
     MinRarity = "ANY",
-    FlyHeight = 35,
-    AutoReturn = true,
-    BaseCFrame = nil,
+    FlyHeight = 25,
+    ScanInterval = 3,
+    
+    -- Player Modifiers
     CustomSpeed = 16,
     CustomJump = 50,
-    SavedEggsData = {},
+    Noclip = false,
+    InfiniteJump = false,
+    
+    -- Base & Teleport Data
+    BaseCFrame = nil,
+    SavedLocations = {},
+    
+    -- Cache Systems
+    EggsCache = {},
+    ChickensCache = {},
     Connections = {},
+    
+    -- Statistics Data
     Stats = {
         TotalStolen = 0,
+        ChickensHammed = 0,
         StartTime = os.time(),
-        EarnedEstimate = 0
+        SessionCoinsEstimate = 0
     }
 }
 
 local Hub = getgenv().HusseinHub
 
--- 6. نظام الإشعارات الداخلي (Custom Notification Engine)
+-- ================================================================================
+-- SECTION 6: CUSTOM NOTIFICATION SYSTEM
+-- ================================================================================
 function Hub:Notify(title, text, duration)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
@@ -102,49 +154,9 @@ function Hub:Notify(title, text, duration)
     end)
 end
 
--- 7. دالة كشف واستخراج موقع قاعدة/مزرعة اللاعب (Base Locator Engine)
-function Hub:GetPlayerBaseLocation()
-    if Hub.BaseCFrame then
-        return Hub.BaseCFrame
-    end
-    
-    for _, plot in pairs(Workspace:GetDescendants()) do
-        if (plot.Name:lower():find("plot") or plot.Name:lower():find("base") or plot.Name:lower():find("claim") or plot.Name:find("مزرعة")) then
-            local ownerVal = plot:FindFirstChild("Owner") or plot:FindFirstChild("Player") or plot:FindFirstChild("PlayerName")
-            if ownerVal and (tostring(ownerVal.Value) == LocalPlayer.Name or tostring(ownerVal.Value) == LocalPlayer.DisplayName) then
-                if plot:IsA("BasePart") then
-                    Hub.BaseCFrame = plot.CFrame
-                    return plot.CFrame
-                elseif plot:IsA("Model") then
-                    local primary = plot.PrimaryPart or plot:FindFirstChildWhichIsA("BasePart")
-                    if primary then
-                        Hub.BaseCFrame = primary.CFrame
-                        return primary.CFrame
-                    end
-                end
-            end
-        end
-    end
-    
-    for _, spawnPoint in pairs(Workspace:GetDescendants()) do
-        if spawnPoint:IsA("SpawnLocation") then
-            local dist = (HumanoidRootPart.Position - spawnPoint.Position).Magnitude
-            if dist < 50 then
-                Hub.BaseCFrame = spawnPoint.CFrame
-                return spawnPoint.CFrame
-            end
-        end
-    end
-    
-    if HumanoidRootPart then
-        Hub.BaseCFrame = HumanoidRootPart.CFrame
-        return HumanoidRootPart.CFrame
-    end
-    
-    return CFrame.new(0, 10, 0)
-end
-
--- 8. نظام تتبع الوقت المنقضي (Farm Time Calculator)
+-- ================================================================================
+-- SECTION 7: TIME & FORMATTING UTILITIES
+-- ================================================================================
 function Hub:GetFormattedTime()
     local elapsed = os.time() - Hub.Stats.StartTime
     local hours = math.floor(elapsed / 3600)
@@ -153,30 +165,6 @@ function Hub:GetFormattedTime()
     return string.format("%02d:%02d:%02d", hours, mins, secs)
 end
 
--- 9. دالة التحقق من أمان التنقل والمسافة (Safety & Distance Checks)
-function Hub:IsPositionSafe(targetCFrame)
-    if not targetCFrame then return false end
-    
-    local distance = (HumanoidRootPart.Position - targetCFrame.Position).Magnitude
-    if distance > Hub.TargetDistance then
-        return false
-    end
-    
-    if Hub.SkipPlayerNear then
-        for _, otherPlayer in pairs(Players:GetPlayers()) do
-            if otherPlayer ~= LocalPlayer and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local playerDist = (targetCFrame.Position - otherPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if playerDist < 60 then
-                    return false
-                end
-            end
-        end
-    end
-    
-    return true
-end
-
--- 10. دالة تحويل القيم المادية لتنسيق مقروء (Currency Formatter)
 function Hub:FormatMoney(number)
     local num = tonumber(number) or 0
     if num >= 1e12 then
@@ -192,36 +180,121 @@ function Hub:FormatMoney(number)
     end
 end
 
--- 11. تهيئة تأخير التيلبورت التكيّفي (Adaptive Teleport Delay)
-function Hub:GetAdaptiveDelay()
-    return Hub.FastMode and 0.12 or 0.35
+-- ================================================================================
+-- SECTION 8: BASE LOCATOR ENGINE
+-- ================================================================================
+function Hub:GetPlayerBaseLocation()
+    if Hub.BaseCFrame then
+        return Hub.BaseCFrame
+    end
+    
+    pcall(function()
+        for _, plot in pairs(Workspace:GetDescendants()) do
+            if (plot.Name:lower():find("plot") or plot.Name:lower():find("base") or plot.Name:lower():find("claim") or plot.Name:find("مزرعة")) then
+                local ownerVal = plot:FindFirstChild("Owner") or plot:FindFirstChild("Player") or plot:FindFirstChild("PlayerName")
+                if ownerVal and (tostring(ownerVal.Value) == LocalPlayer.Name or tostring(ownerVal.Value) == LocalPlayer.DisplayName) then
+                    if plot:IsA("BasePart") then
+                        Hub.BaseCFrame = plot.CFrame
+                    elseif plot:IsA("Model") then
+                        local primary = plot.PrimaryPart or plot:FindFirstChildWhichIsA("BasePart")
+                        if primary then
+                            Hub.BaseCFrame = primary.CFrame
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    
+    if Hub.BaseCFrame then return Hub.BaseCFrame end
+
+    pcall(function()
+        for _, spawnPoint in pairs(Workspace:GetDescendants()) do
+            if spawnPoint:IsA("SpawnLocation") then
+                local dist = (HumanoidRootPart.Position - spawnPoint.Position).Magnitude
+                if dist < 60 then
+                    Hub.BaseCFrame = spawnPoint.CFrame
+                    return spawnPoint.CFrame
+                end
+            end
+        end
+    end)
+    
+    if HumanoidRootPart then
+        Hub.BaseCFrame = HumanoidRootPart.CFrame
+        return HumanoidRootPart.CFrame
+    end
+    
+    return CFrame.new(0, 10, 0)
 end
 
--- 12. دالة مسح وفحص البيض المتاح في السيرفر (Server Eggs Scanner Engine)
+-- ================================================================================
+-- SECTION 9: ADVANCED SCANNER ENGINE (EGGS & PETS DETECTOR)
+-- ================================================================================
 function Hub:ScanServerEggs()
     local eggList = {}
     
     pcall(function()
         for _, obj in pairs(Workspace:GetDescendants()) do
-            if (obj.Name:lower():find("egg") or obj.Name:lower():find("بيض") or obj:FindFirstChild("ProximityPrompt")) then
-                local rootPart = obj:IsA("BasePart") and obj or (obj:IsA("Model") and (obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")))
-                
-                if rootPart and HumanoidRootPart then
-                    local dist = math.floor((HumanoidRootPart.Position - rootPart.Position).Magnitude)
-                    
-                    if dist <= (Hub.TargetDistance or 6000) then
-                        local rarity = obj:FindFirstChild("Rarity") and obj.Rarity.Value or "Common"
-                        local income = obj:FindFirstChild("Income") and obj.Income.Value or 100
-                        
-                        table.insert(eggList, {
-                            Object = rootPart,
-                            Name = obj.Name,
-                            Distance = dist,
-                            Rarity = rarity,
-                            Income = Hub:FormatMoney(income),
-                            Image = "rbxassetid://6031075931"
-                        })
-                    end
+            local isTargetEgg = false
+            local eggName = obj.Name
+            local rootPart = nil
+            local iconAsset = "rbxassetid://6031075931"
+            local petInside = "Unknown Pet"
+            local eggRarity = "Common"
+
+            -- Check Proximity Prompts
+            if obj:IsA("ProximityPrompt") then
+                local parent = obj.Parent
+                if parent then
+                    rootPart = parent:IsA("BasePart") and parent or (parent:IsA("Model") and (parent.PrimaryPart or parent:FindFirstChildWhichIsA("BasePart")))
+                    eggName = parent.Name
+                    isTargetEgg = true
+                end
+            elseif (obj.Name:lower():find("egg") or obj.Name:lower():find("بيض")) and not obj:IsA("Script") and not obj:IsA("ModuleScript") then
+                if obj:IsA("BasePart") then
+                    rootPart = obj
+                    isTargetEgg = true
+                elseif obj:IsA("Model") then
+                    rootPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart") or obj:FindFirstChild("MeshPart")
+                    isTargetEgg = true
+                end
+            end
+
+            if isTargetEgg and rootPart and HumanoidRootPart then
+                -- Extract Image Texture
+                if rootPart:IsA("MeshPart") and rootPart.TextureID ~= "" then
+                    iconAsset = rootPart.TextureID
+                elseif obj:FindFirstChild("Texture") then
+                    iconAsset = tostring(obj.Texture.Value)
+                end
+
+                -- Extract Pet / Monster Name
+                local petVal = obj:FindFirstChild("Pet") or obj:FindFirstChild("Reward") or obj:FindFirstChild("Monster") or rootPart:FindFirstChild("Pet")
+                if petVal then
+                    petInside = tostring(petVal.Value)
+                elseif rootPart.Parent and rootPart.Parent:FindFirstChild("Pet") then
+                    petInside = tostring(rootPart.Parent.Pet.Value)
+                end
+
+                -- Extract Rarity
+                local rarityVal = obj:FindFirstChild("Rarity") or rootPart:FindFirstChild("Rarity")
+                if rarityVal then
+                    eggRarity = tostring(rarityVal.Value)
+                end
+
+                -- Precise Distance Calculation
+                local calculatedDistance = math.floor((HumanoidRootPart.Position - rootPart.Position).Magnitude)
+
+                if calculatedDistance <= (Hub.TargetDistance or 10000) then
+                    table.insert(eggList, {
+                        Object = rootPart,
+                        Name = eggName,
+                        Pet = petInside,
+                        Rarity = eggRarity,
+                        Distance = calculatedDistance,
+                        Image = iconAsset
+                    })
                 end
             end
         end
@@ -231,81 +304,162 @@ function Hub:ScanServerEggs()
         return a.Distance < b.Distance
     end)
     
+    Hub.EggsCache = eggList
     return eggList
 end
 
--- ==================================================
--- بناء عناصر واجهة المستخدم (GUI Creation)
--- ==================================================
+-- ================================================================================
+-- SECTION 10: CHICKEN & MONSTER FINDER ENGINE
+-- ================================================================================
+function Hub:FindOpponentChicken()
+    local targetChickenPart = nil
+    local shortestDistance = math.huge
 
+    pcall(function()
+        local myBase = Hub:GetPlayerBaseLocation()
+        
+        for _, item in pairs(Workspace:GetDescendants()) do
+            local itemName = item.Name:lower()
+            if (itemName:find("chicken") or itemName:find("دجاجة") or itemName:find("hen") or itemName:find("rooster") or itemName:find("boss") or itemName:find("nest")) then
+                local root = nil
+                if item:IsA("BasePart") then
+                    root = item
+                elseif item:IsA("Model") then
+                    root = item.PrimaryPart or item:FindFirstChild("HumanoidRootPart") or item:FindFirstChildWhichIsA("BasePart")
+                end
+
+                if root and HumanoidRootPart then
+                    local distFromMyBase = (root.Position - myBase.Position).Magnitude
+                    
+                    -- Must belong to enemy base (dist > 40 studs from my base)
+                    if distFromMyBase > 40 then
+                        local distFromPlayer = (HumanoidRootPart.Position - root.Position).Magnitude
+                        if distFromPlayer < shortestDistance then
+                            shortestDistance = distFromPlayer
+                            targetChickenPart = root
+                        end
+                    end
+                end
+            end
+        end
+    end)
+
+    return targetChickenPart
+end
+
+-- ================================================================================
+-- SECTION 11: SAFE TELEPORT & BYPASS MOVEMENT SYSTEM
+-- ================================================================================
+function Hub:SafeBypassMove(targetCFrame)
+    if not targetCFrame or not HumanoidRootPart then return end
+
+    pcall(function()
+        -- Disable Collisions
+        for _, part in pairs(Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+
+        local startPos = HumanoidRootPart.Position
+        local targetPos = targetCFrame.Position
+        local totalDist = (startPos - targetPos).Magnitude
+
+        if Hub.SafeMode and totalDist > 40 then
+            local duration = math.clamp(totalDist / (Hub.TweenSpeed or 110), 0.2, 1.8)
+            local waypointCFrame = CFrame.new(targetPos + Vector3.new(0, Hub.FlyHeight or 25, 0))
+            
+            local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+            local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = waypointCFrame})
+            tween:Play()
+            tween.Completed:Wait()
+
+            HumanoidRootPart.CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+        else
+            HumanoidRootPart.CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+        end
+    end)
+end
+
+-- ================================================================================
+-- SECTION 12: PROXIMITY PROMPT TRIGGER ENGINE
+-- ================================================================================
+function Hub:TriggerPrompt(targetPart)
+    if not targetPart then return end
+
+    pcall(function()
+        local prompt = targetPart:FindFirstChildWhichIsA("ProximityPrompt", true) 
+            or (targetPart.Parent and targetPart.Parent:FindFirstChildWhichIsA("ProximityPrompt", true))
+
+        if prompt then
+            if Hub.HumanizedDelay then
+                task.wait(math.random(4, 12) / 100)
+            end
+
+            if fireproximityprompt then
+                fireproximityprompt(prompt)
+            elseif prompt.InputHoldBegin then
+                prompt:InputHoldBegin()
+                task.wait(prompt.HoldDuration > 0 and prompt.HoldDuration or 0.1)
+                prompt:InputHoldEnd()
+            end
+        end
+    end)
+end
+
+-- ================================================================================
+-- SECTION 13: GUI MASTER BUILDING ENGINE
+-- ================================================================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HusseinOnHubMaster"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local LogoButton = Instance.new("ImageButton")
-LogoButton.Name = "FloatingLogo"
-LogoButton.Size = UDim2.new(0, 50, 0, 50)
-LogoButton.Position = UDim2.new(0.88, 0, 0.15, 0)
-LogoButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-LogoButton.BorderColor3 = Color3.fromRGB(0, 255, 120)
-LogoButton.BorderSizePixel = 2
-LogoButton.Image = "rbxassetid://6031075931"
-LogoButton.Active = true
-LogoButton.Draggable = true
-LogoButton.Parent = ScreenGui
+local FloatingLogo = Instance.new("ImageButton")
+FloatingLogo.Name = "FloatingLogo"
+FloatingLogo.Size = UDim2.new(0, 52, 0, 52)
+FloatingLogo.Position = UDim2.new(0.88, 0, 0.15, 0)
+FloatingLogo.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+FloatingLogo.BorderColor3 = Color3.fromRGB(0, 255, 140)
+FloatingLogo.BorderSizePixel = 2
+FloatingLogo.Image = "rbxassetid://6031075931"
+FloatingLogo.Active = true
+FloatingLogo.Draggable = true
+FloatingLogo.Parent = ScreenGui
 
-local UICornerLogo = Instance.new("UICorner")
-UICornerLogo.CornerRadius = UDim.new(1, 0)
-UICornerLogo.Parent = LogoButton
-
-local UIGradientLogo = Instance.new("UIGradient")
-UIGradientLogo.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 150)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 150, 255))
-})
-UIGradientLogo.Parent = LogoButton
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(1, 0)
+LogoCorner.Parent = FloatingLogo
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 390, 0, 420)
-MainFrame.Position = UDim2.new(0.5, -195, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 420, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -210, 0.2, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
 MainFrame.Active = true
 MainFrame.Parent = ScreenGui
 
-local UICornerMain = Instance.new("UICorner")
-UICornerMain.CornerRadius = UDim.new(0, 12)
-UICornerMain.Parent = MainFrame
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
 
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Thickness = 1.5
 MainStroke.Color = Color3.fromRGB(35, 35, 35)
-MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Parent = MainFrame
 
--- نظام سحب النافذة (Dragging)
+-- Dragging Functionality
 local dragging, dragInput, dragStart, startPos
-
-local function UpdateDrag(input)
-    local delta = input.Position - dragStart
-    local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    TweenService:Create(MainFrame, TweenInfo.new(0.08, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = newPos}):Play()
-end
-
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
-        
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end)
@@ -318,16 +472,13 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
-        UpdateDrag(input)
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
-LogoButton.MouseButton1Click:Connect(function()
+FloatingLogo.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
-    if MainFrame.Visible then
-        MainFrame.Size = UDim2.new(0, 390, 0, 0)
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 390, 0, 420)}):Play()
-    end
 end)
 
 -- Header Bar
@@ -335,86 +486,65 @@ local HeaderBar = Instance.new("Frame")
 HeaderBar.Name = "HeaderBar"
 HeaderBar.Size = UDim2.new(1, 0, 0, 45)
 HeaderBar.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-HeaderBar.BorderSizePixel = 0
 HeaderBar.Parent = MainFrame
 
-local UICornerHeader = Instance.new("UICorner")
-UICornerHeader.CornerRadius = UDim.new(0, 12)
-UICornerHeader.Parent = HeaderBar
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 12)
+HeaderCorner.Parent = HeaderBar
 
 local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Name = "TitleLabel"
-TitleLabel.Size = UDim2.new(0.5, 0, 1, 0)
+TitleLabel.Size = UDim2.new(0.7, 0, 1, 0)
 TitleLabel.Position = UDim2.new(0.04, 0, 0, 0)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "onhub"
+TitleLabel.Text = "onhub | Steal An Egg (Master)"
 TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 140)
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.TextSize = 22
+TitleLabel.TextSize = 19
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = HeaderBar
 
-local SubTitleLabel = Instance.new("TextLabel")
-SubTitleLabel.Name = "SubTitleLabel"
-SubTitleLabel.Size = UDim2.new(0.4, 0, 1, 0)
-SubTitleLabel.Position = UDim2.new(0.24, 0, 0, 0)
-SubTitleLabel.BackgroundTransparency = 1
-SubTitleLabel.Text = "| Steal An Egg"
-SubTitleLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
-SubTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-SubTitleLabel.Font = Enum.Font.SourceSans
-SubTitleLabel.TextSize = 14
-SubTitleLabel.Parent = HeaderBar
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(0.92, -5, 0.18, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Text = "X"
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.TextSize = 14
+CloseBtn.Parent = HeaderBar
 
-local CloseButton = Instance.new("TextButton")
-CloseButton.Name = "CloseButton"
-CloseButton.Size = UDim2.new(0, 30, 0, 30)
-CloseButton.Position = UDim2.new(0.9, -5, 0.16, 0)
-CloseButton.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.Text = "X"
-CloseButton.Font = Enum.Font.SourceSansBold
-CloseButton.TextSize = 14
-CloseButton.Parent = HeaderBar
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
 
-local UICornerClose = Instance.new("UICorner")
-UICornerClose.CornerRadius = UDim.new(0, 8)
-UICornerClose.Parent = CloseButton
-
-CloseButton.MouseButton1Click:Connect(function()
-    TweenService:Create(MainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 390, 0, 0)}):Play()
-    task.wait(0.2)
+CloseBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
 end)
 
--- Side Tab Bar
+-- Navigation Sidebar
 local TabBar = Instance.new("Frame")
-TabBar.Name = "TabBar"
-TabBar.Size = UDim2.new(0, 100, 1, -55)
+TabBar.Size = UDim2.new(0, 110, 1, -55)
 TabBar.Position = UDim2.new(0, 5, 0, 50)
 TabBar.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
-TabBar.BorderSizePixel = 0
 TabBar.Parent = MainFrame
 
-local UICornerTabBar = Instance.new("UICorner")
-UICornerTabBar.CornerRadius = UDim.new(0, 8)
-UICornerTabBar.Parent = TabBar
+local TabBarCorner = Instance.new("UICorner")
+TabBarCorner.CornerRadius = UDim.new(0, 8)
+TabBarCorner.Parent = TabBar
 
 local TabListLayout = Instance.new("UIListLayout")
 TabListLayout.Parent = TabBar
-TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 TabListLayout.Padding = UDim.new(0, 5)
 
 local TabPadding = Instance.new("UIPadding")
-TabPadding.PaddingTop = UDim.new(0, 8)
+TabPadding.PaddingTop = UDim.new(0, 6)
 TabPadding.PaddingLeft = UDim.new(0, 5)
 TabPadding.PaddingRight = UDim.new(0, 5)
 TabPadding.Parent = TabBar
 
 local ContentContainer = Instance.new("Frame")
-ContentContainer.Name = "ContentContainer"
-ContentContainer.Size = UDim2.new(1, -115, 1, -55)
-ContentContainer.Position = UDim2.new(0, 110, 0, 50)
+ContentContainer.Size = UDim2.new(1, -125, 1, -55)
+ContentContainer.Position = UDim2.new(0, 120, 0, 50)
 ContentContainer.BackgroundTransparency = 1
 ContentContainer.Parent = MainFrame
 
@@ -423,7 +553,6 @@ local TabButtons = {}
 
 function Hub:CreateTab(tabName, layoutOrder)
     local TabButton = Instance.new("TextButton")
-    TabButton.Name = tabName .. "Btn"
     TabButton.Size = UDim2.new(1, 0, 0, 35)
     TabButton.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
     TabButton.TextColor3 = Color3.fromRGB(180, 180, 180)
@@ -433,22 +562,20 @@ function Hub:CreateTab(tabName, layoutOrder)
     TabButton.LayoutOrder = layoutOrder or 1
     TabButton.Parent = TabBar
 
-    local UICornerBtn = Instance.new("UICorner")
-    UICornerBtn.CornerRadius = UDim.new(0, 6)
-    UICornerBtn.Parent = TabButton
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = TabButton
 
     local TabPage = Instance.new("ScrollingFrame")
-    TabPage.Name = tabName .. "Page"
     TabPage.Size = UDim2.new(1, 0, 1, 0)
     TabPage.BackgroundTransparency = 1
-    TabPage.ScrollBarThickness = 4
+    TabPage.ScrollBarThickness = 3
     TabPage.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 140)
     TabPage.Visible = false
     TabPage.Parent = ContentContainer
 
     local PageListLayout = Instance.new("UIListLayout")
     PageListLayout.Parent = TabPage
-    PageListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     PageListLayout.Padding = UDim.new(0, 8)
 
     TabButton.MouseButton1Click:Connect(function()
@@ -471,17 +598,20 @@ function Hub:CreateTab(tabName, layoutOrder)
     return TabPage
 end
 
+-- Create Tabs
 local FarmPage = Hub:CreateTab("FARM", 1)
 local ConfigPage = Hub:CreateTab("CONFIG", 2)
-local MiscPage = Hub:CreateTab("MISC", 3)
+local PlayerPage = Hub:CreateTab("PLAYER", 3)
+local MiscPage = Hub:CreateTab("MISC", 4)
 
 FarmPage.Visible = true
 TabButtons["FARM"].BackgroundColor3 = Color3.fromRGB(0, 180, 100)
 TabButtons["FARM"].TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- تجهيز زر الفارم وقائمة الأهداف داخل تبويب FARM
+-- ================================================================================
+-- SECTION 14: FARMING PAGE ELEMENTS
+-- ================================================================================
 local StartFarmBtn = Instance.new("TextButton")
-StartFarmBtn.Name = "StartFarmBtn"
 StartFarmBtn.Size = UDim2.new(1, -5, 0, 40)
 StartFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
 StartFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -490,781 +620,331 @@ StartFarmBtn.Font = Enum.Font.SourceSansBold
 StartFarmBtn.TextSize = 15
 StartFarmBtn.Parent = FarmPage
 
-local UICornerStart = Instance.new("UICorner")
-UICornerStart.CornerRadius = UDim.new(0, 6)
-UICornerStart.Parent = StartFarmBtn
+local StartCorner = Instance.new("UICorner")
+StartCorner.CornerRadius = UDim.new(0, 6)
+StartCorner.Parent = StartFarmBtn
 
 local TargetsScroll = Instance.new("ScrollingFrame")
-TargetsScroll.Name = "TargetsScroll"
 TargetsScroll.Size = UDim2.new(1, -5, 1, -50)
 TargetsScroll.BackgroundTransparency = 1
 TargetsScroll.ScrollBarThickness = 3
-TargetsScroll.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 140)
 TargetsScroll.Parent = FarmPage
 
 local TargetsLayout = Instance.new("UIListLayout")
 TargetsLayout.Parent = TargetsScroll
-TargetsLayout.SortOrder = Enum.SortOrder.LayoutOrder
 TargetsLayout.Padding = UDim.new(0, 6)
 
--- 13. دالة تحديث قائمة البيض بالواجهة
+-- Refresh Targets UI Function
 function Hub:RefreshTargetsUI()
     pcall(function()
         for _, child in pairs(TargetsScroll:GetChildren()) do
-            if child:IsA("Frame") then
-                child:Destroy()
-            end
+            if child:IsA("Frame") then child:Destroy() end
         end
-        
+
         local eggList = Hub:ScanServerEggs()
-        local contentHeight = 0
-        
-        for index, eggData in ipairs(eggList) do
-            contentHeight = contentHeight + 56
-            
-            local CardFrame = Instance.new("Frame")
-            CardFrame.Name = "EggCard_" .. tostring(index)
-            CardFrame.Size = UDim2.new(1, -4, 0, 50)
-            CardFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-            CardFrame.BorderSizePixel = 0
-            CardFrame.Parent = TargetsScroll
-            
-            local UICornerCard = Instance.new("UICorner")
-            UICornerCard.CornerRadius = UDim.new(0, 6)
-            UICornerCard.Parent = CardFrame
-            
+        local height = 0
+
+        for idx, eggData in ipairs(eggList) do
+            height = height + 54
+
+            local Card = Instance.new("Frame")
+            Card.Size = UDim2.new(1, -4, 0, 48)
+            Card.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            Card.Parent = TargetsScroll
+
+            local CardCorner = Instance.new("UICorner")
+            CardCorner.CornerRadius = UDim.new(0, 6)
+            CardCorner.Parent = Card
+
             local CardStroke = Instance.new("UIStroke")
             CardStroke.Thickness = 1
             CardStroke.Color = Color3.fromRGB(45, 45, 45)
-            CardStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            CardStroke.Parent = CardFrame
-            
-            local ImageLabel = Instance.new("ImageLabel")
-            ImageLabel.Name = "EggIcon"
-            ImageLabel.Size = UDim2.new(0, 38, 0, 38)
-            ImageLabel.Position = UDim2.new(0, 6, 0.5, -19)
-            ImageLabel.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-            ImageLabel.Image = eggData.Image or "rbxassetid://6031075931"
-            ImageLabel.Parent = CardFrame
-            
-            local UICornerImg = Instance.new("UICorner")
-            UICornerImg.CornerRadius = UDim.new(0, 6)
-            UICornerImg.Parent = ImageLabel
-            
-            local NameLabel = Instance.new("TextLabel")
-            NameLabel.Name = "EggName"
-            NameLabel.Size = UDim2.new(0.5, 0, 0, 20)
-            NameLabel.Position = UDim2.new(0, 50, 0, 5)
-            NameLabel.BackgroundTransparency = 1
-            NameLabel.Text = eggData.Name
-            NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            NameLabel.TextXAlignment = Enum.TextXAlignment.Left
-            NameLabel.Font = Enum.Font.SourceSansBold
-            NameLabel.TextSize = 13
-            NameLabel.Parent = CardFrame
-            
-            local SubDetailLabel = Instance.new("TextLabel")
-            SubDetailLabel.Name = "SubDetail"
-            SubDetailLabel.Size = UDim2.new(0.5, 0, 0, 18)
-            SubDetailLabel.Position = UDim2.new(0, 50, 0, 25)
-            SubDetailLabel.BackgroundTransparency = 1
-            SubDetailLabel.Text = "[" .. eggData.Rarity .. "] • " .. tostring(eggData.Distance) .. " studs"
-            SubDetailLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-            SubDetailLabel.TextXAlignment = Enum.TextXAlignment.Left
-            SubDetailLabel.Font = Enum.Font.SourceSans
-            SubDetailLabel.TextSize = 11
-            SubDetailLabel.Parent = CardFrame
-            
-            local IncomeLabel = Instance.new("TextLabel")
-            IncomeLabel.Name = "IncomeLabel"
-            IncomeLabel.Size = UDim2.new(0.38, 0, 0, 20)
-            IncomeLabel.Position = UDim2.new(0.6, 0, 0, 5)
-            IncomeLabel.BackgroundTransparency = 1
-            IncomeLabel.Text = "$" .. eggData.Income .. "/s"
-            IncomeLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
-            IncomeLabel.TextXAlignment = Enum.TextXAlignment.Right
-            IncomeLabel.Font = Enum.Font.SourceSansBold
-            IncomeLabel.TextSize = 13
-            IncomeLabel.Parent = CardFrame
-            
-            local ClickLabel = Instance.new("TextLabel")
-            ClickLabel.Name = "ClickLabel"
-            ClickLabel.Size = UDim2.new(0.38, 0, 0, 18)
-            ClickLabel.Position = UDim2.new(0.6, 0, 0, 25)
-            ClickLabel.BackgroundTransparency = 1
-            ClickLabel.Text = "click to lock"
-            ClickLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
-            ClickLabel.TextXAlignment = Enum.TextXAlignment.Right
-            ClickLabel.Font = Enum.Font.SourceSansItalic
-            ClickLabel.TextSize = 10
-            ClickLabel.Parent = CardFrame
-            
+            CardStroke.Parent = Card
+
+            local Icon = Instance.new("ImageLabel")
+            Icon.Size = UDim2.new(0, 36, 0, 36)
+            Icon.Position = UDim2.new(0, 6, 0.5, -18)
+            Icon.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+            Icon.Image = eggData.Image
+            Icon.Parent = Card
+
+            local IconCorner = Instance.new("UICorner")
+            IconCorner.CornerRadius = UDim.new(0, 6)
+            IconCorner.Parent = Icon
+
+            local Title = Instance.new("TextLabel")
+            Title.Size = UDim2.new(0.65, 0, 0, 20)
+            Title.Position = UDim2.new(0, 48, 0, 4)
+            Title.BackgroundTransparency = 1
+            Title.Text = eggData.Name .. " (" .. eggData.Pet .. ")"
+            Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Title.Font = Enum.Font.SourceSansBold
+            Title.TextSize = 13
+            Title.TextXAlignment = Enum.TextXAlignment.Left
+            Title.Parent = Card
+
+            local SubTxt = Instance.new("TextLabel")
+            SubTxt.Size = UDim2.new(0.65, 0, 0, 18)
+            SubTxt.Position = UDim2.new(0, 48, 0, 24)
+            SubTxt.BackgroundTransparency = 1
+            SubTxt.Text = "Dist: " .. tostring(eggData.Distance) .. " studs | " .. eggData.Rarity
+            SubTxt.TextColor3 = Color3.fromRGB(0, 255, 140)
+            SubTxt.Font = Enum.Font.SourceSans
+            SubTxt.TextSize = 11
+            SubTxt.TextXAlignment = Enum.TextXAlignment.Left
+            SubTxt.Parent = Card
+
             local SelectBtn = Instance.new("TextButton")
-            SelectBtn.Name = "SelectBtn"
             SelectBtn.Size = UDim2.new(1, 0, 1, 0)
             SelectBtn.BackgroundTransparency = 1
             SelectBtn.Text = ""
-            SelectBtn.Parent = CardFrame
-            
+            SelectBtn.Parent = Card
+
             SelectBtn.MouseButton1Click:Connect(function()
                 Hub.SelectedTarget = eggData.Object
                 Hub.SelectedEggName = eggData.Name
                 CardStroke.Color = Color3.fromRGB(0, 255, 140)
-                ClickLabel.Text = "LOCKED 🔒"
-                ClickLabel.TextColor3 = Color3.fromRGB(0, 255, 140)
-                Hub:Notify("Target Locked", "تم تحديد الهدف: " .. eggData.Name, 2)
+                Hub:Notify("Target Locked", "تم القفل على: " .. eggData.Name)
             end)
         end
-        
-        TargetsScroll.CanvasSize = UDim2.new(0, 0, 0, contentHeight + 10)
+
+        TargetsScroll.CanvasSize = UDim2.new(0, 0, 0, height + 10)
     end)
 end
 
--- ==================================================
--- محرك ووظائف السرقة (Steal Mechanics)
--- ==================================================
-
-function Hub:FindOpponentChicken()
-    local chickenObj = nil
-    local minDistance = math.huge
-
-    pcall(function()
-        for _, v in pairs(Workspace:GetDescendants()) do
-            local nameLower = v.Name:lower()
-            if (nameLower:find("chicken") or nameLower:find("دجاجة") or nameLower:find("boss")) then
-                if v:IsA("BasePart") then
-                    local dist = (HumanoidRootPart.Position - v.Position).Magnitude
-                    if dist < minDistance then
-                        minDistance = dist
-                        chickenObj = v
-                    end
-                elseif v:IsA("Model") then
-                    local hrp = v:FindFirstChild("HumanoidRootPart") or v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")
-                    if hrp then
-                        local dist = (HumanoidRootPart.Position - hrp.Position).Magnitude
-                        if dist < minDistance then
-                            minDistance = dist
-                            chickenObj = hrp
-                        end
-                    end
-                end
-            end
-        end
-    end)
-
-    return chickenObj
-end
-
-function Hub:TriggerPrompt(targetPart)
-    if not targetPart then return false end
-
-    pcall(function()
-        local prompt = targetPart:FindFirstChildWhichIsA("ProximityPrompt") 
-            or targetPart.Parent:FindFirstChildWhichIsA("ProximityPrompt")
-
-        if prompt then
-            if fireproximityprompt then
-                fireproximityprompt(prompt)
-            elseif prompt.InputHoldBegin then
-                prompt:InputHoldBegin()
-                task.wait(prompt.HoldDuration or 0.1)
-                prompt:InputHoldEnd()
-            end
-        end
-    end)
-    return true
-end
-
-function Hub:SafeTeleport(targetCFrame)
-    if not targetCFrame or not HumanoidRootPart then return end
-
-    pcall(function()
-        for _, part in pairs(Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-
-        local targetPos = targetCFrame.Position
-        HumanoidRootPart.CFrame = CFrame.new(targetPos + Vector3.new(0, Hub.FlyHeight or 30, 0))
-        task.wait(Hub:GetAdaptiveDelay())
-        HumanoidRootPart.CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
-    end)
-end
-
-function Hub.ExecuteFarmLoop()
-    while Hub.IsFarming do
-        pcall(function()
-            if not Hub.SelectedTarget or not Hub.SelectedTarget.Parent then
-                local eggList = Hub:ScanServerEggs()
-                if #eggList > 0 then
-                    Hub.SelectedTarget = eggList[1].Object
-                    Hub.SelectedEggName = eggList[1].Name
-                else
-                    Hub:Notify("Warning", "لم يتم العثور على بيض متاح حالياً!", 2)
-                    task.wait(2)
-                    return
-                end
-            end
-
-            local opponentChicken = Hub:FindOpponentChicken()
-            if opponentChicken then
-                Hub:SafeTeleport(opponentChicken.CFrame)
-                task.wait(0.15)
-                Hub:TriggerPrompt(opponentChicken)
-            end
-
-            task.wait(0.35)
-
-            if Hub.SelectedTarget and Hub.SelectedTarget.Parent then
-                HumanoidRootPart.CFrame = Hub.SelectedTarget.CFrame + Vector3.new(0, 3, 0)
-                task.wait(0.15)
-                Hub:TriggerPrompt(Hub.SelectedTarget)
-            end
-
-            if Hub.AutoReturn then
-                task.wait(0.25)
-                local myBaseCFrame = Hub:GetPlayerBaseLocation()
-                HumanoidRootPart.CFrame = myBaseCFrame + Vector3.new(0, 4, 0)
-            end
-
-            Hub.Stats.TotalStolen = Hub.Stats.TotalStolen + 1
-        end)
-
-        task.wait(Hub.FastMode and 1.2 or 2.2)
-    end
-end
-
-StartFarmBtn.MouseButton1Click:Connect(function()
-    Hub.IsFarming = not Hub.IsFarming
-    
-    if Hub.IsFarming then
-        StartFarmBtn.Text = "STOP FARM"
-        StartFarmBtn.BackgroundColor3 = Color3.fromRGB(220, 40, 40)
-        Hub:Notify("Auto Farm", "تم تفعيل السرقة التلقائية!", 2)
-        task.spawn(Hub.ExecuteFarmLoop)
-    else
-        StartFarmBtn.Text = "START FARM"
-        StartFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
-        Hub:Notify("Auto Farm", "تم إيقاف السرقة التلقائية.", 2)
-    end
-end)
-
--- ==================================================
--- مكونات واجهة الإعدادات والخيارات (CONFIG & MISC Elements)
--- ==================================================
-
+-- ================================================================================
+-- SECTION 15: COMPONENT BUILDERS (TOGGLES & SLIDERS)
+-- ================================================================================
 function Hub:CreateToggle(parent, text, defaultState, callback)
-    local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Name = text .. "Frame"
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
-    ToggleFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-    ToggleFrame.BorderSizePixel = 0
-    ToggleFrame.Parent = parent
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 38)
+    Frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+    Frame.Parent = parent
 
-    local UICornerToggle = Instance.new("UICorner")
-    UICornerToggle.CornerRadius = UDim.new(0, 6)
-    UICornerToggle.Parent = ToggleFrame
+    local FrameCorner = Instance.new("UICorner")
+    FrameCorner.CornerRadius = UDim.new(0, 6)
+    FrameCorner.Parent = Frame
 
-    local ToggleLabel = Instance.new("TextLabel")
-    ToggleLabel.Name = "Label"
-    ToggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
-    ToggleLabel.Position = UDim2.new(0.04, 0, 0, 0)
-    ToggleLabel.BackgroundTransparency = 1
-    ToggleLabel.Text = text
-    ToggleLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    ToggleLabel.Font = Enum.Font.SourceSansBold
-    ToggleLabel.TextSize = 13
-    ToggleLabel.Parent = ToggleFrame
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.Position = UDim2.new(0.04, 0, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    Label.Font = Enum.Font.SourceSansBold
+    Label.TextSize = 13
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
 
-    local SwitchBtn = Instance.new("TextButton")
-    SwitchBtn.Name = "Switch"
-    SwitchBtn.Size = UDim2.new(0, 44, 0, 22)
-    SwitchBtn.Position = UDim2.new(0.96, -48, 0.5, -11)
-    SwitchBtn.BackgroundColor3 = defaultState and Color3.fromRGB(0, 220, 110) or Color3.fromRGB(50, 50, 50)
-    SwitchBtn.Text = ""
-    SwitchBtn.Parent = ToggleFrame
+    local Switch = Instance.new("TextButton")
+    Switch.Size = UDim2.new(0, 42, 0, 20)
+    Switch.Position = UDim2.new(0.96, -46, 0.5, -10)
+    Switch.BackgroundColor3 = defaultState and Color3.fromRGB(0, 220, 110) or Color3.fromRGB(50, 50, 50)
+    Switch.Text = ""
+    Switch.Parent = Frame
 
-    local UICornerSwitch = Instance.new("UICorner")
-    UICornerSwitch.CornerRadius = UDim.new(1, 0)
-    UICornerSwitch.Parent = SwitchBtn
-
-    local CircleDot = Instance.new("Frame")
-    CircleDot.Name = "Dot"
-    CircleDot.Size = UDim2.new(0, 18, 0, 18)
-    CircleDot.Position = defaultState and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
-    CircleDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    CircleDot.BorderSizePixel = 0
-    CircleDot.Parent = SwitchBtn
-
-    local UICornerDot = Instance.new("UICorner")
-    UICornerDot.CornerRadius = UDim.new(1, 0)
-    UICornerDot.Parent = CircleDot
+    local SwitchCorner = Instance.new("UICorner")
+    SwitchCorner.CornerRadius = UDim.new(1, 0)
+    SwitchCorner.Parent = Switch
 
     local state = defaultState
-    SwitchBtn.MouseButton1Click:Connect(function()
+    Switch.MouseButton1Click:Connect(function()
         state = not state
-        if state then
-            TweenService:Create(SwitchBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 220, 110)}):Play()
-            TweenService:Create(CircleDot, TweenInfo.new(0.2), {Position = UDim2.new(1, -20, 0.5, -9)}):Play()
-        else
-            TweenService:Create(SwitchBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
-            TweenService:Create(CircleDot, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0.5, -9)}):Play()
-        end
+        Switch.BackgroundColor3 = state and Color3.fromRGB(0, 220, 110) or Color3.fromRGB(50, 50, 50)
         if callback then callback(state) end
     end)
-
-    return ToggleFrame
 end
 
 function Hub:CreateSlider(parent, text, minVal, maxVal, defaultVal, callback)
-    local SliderFrame = Instance.new("Frame")
-    SliderFrame.Name = text .. "SliderFrame"
-    SliderFrame.Size = UDim2.new(1, 0, 0, 50)
-    SliderFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-    SliderFrame.BorderSizePixel = 0
-    SliderFrame.Parent = parent
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 48)
+    Frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+    Frame.Parent = parent
 
-    local UICornerSlider = Instance.new("UICorner")
-    UICornerSlider.CornerRadius = UDim.new(0, 6)
-    UICornerSlider.Parent = SliderFrame
+    local FrameCorner = Instance.new("UICorner")
+    FrameCorner.CornerRadius = UDim.new(0, 6)
+    FrameCorner.Parent = Frame
 
-    local SliderTitle = Instance.new("TextLabel")
-    SliderTitle.Size = UDim2.new(0.6, 0, 0, 22)
-    SliderTitle.Position = UDim2.new(0.04, 0, 0, 4)
-    SliderTitle.BackgroundTransparency = 1
-    SliderTitle.Text = text
-    SliderTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
-    SliderTitle.TextXAlignment = Enum.TextXAlignment.Left
-    SliderTitle.Font = Enum.Font.SourceSansBold
-    SliderTitle.TextSize = 13
-    SliderTitle.Parent = SliderFrame
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.6, 0, 0, 20)
+    Title.Position = UDim2.new(0.04, 0, 0, 4)
+    Title.BackgroundTransparency = 1
+    Title.Text = text
+    Title.TextColor3 = Color3.fromRGB(220, 220, 220)
+    Title.Font = Enum.Font.SourceSansBold
+    Title.TextSize = 13
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Frame
 
-    local ValueLabel = Instance.new("TextLabel")
-    ValueLabel.Size = UDim2.new(0.3, 0, 0, 22)
-    ValueLabel.Position = UDim2.new(0.66, 0, 0, 4)
-    ValueLabel.BackgroundTransparency = 1
-    ValueLabel.Text = tostring(defaultVal)
-    ValueLabel.TextColor3 = Color3.fromRGB(0, 255, 140)
-    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    ValueLabel.Font = Enum.Font.SourceSansBold
-    ValueLabel.TextSize = 13
-    ValueLabel.Parent = SliderFrame
+    local ValLabel = Instance.new("TextLabel")
+    ValLabel.Size = UDim2.new(0.3, 0, 0, 20)
+    ValLabel.Position = UDim2.new(0.66, 0, 0, 4)
+    ValLabel.BackgroundTransparency = 1
+    ValLabel.Text = tostring(defaultVal)
+    ValLabel.TextColor3 = Color3.fromRGB(0, 255, 140)
+    ValLabel.Font = Enum.Font.SourceSansBold
+    ValLabel.TextSize = 13
+    ValLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValLabel.Parent = Frame
 
-    local BarBack = Instance.new("Frame")
-    BarBack.Size = UDim2.new(0.92, 0, 0, 8)
-    BarBack.Position = UDim2.new(0.04, 0, 0.7, -2)
-    BarBack.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    BarBack.BorderSizePixel = 0
-    BarBack.Parent = SliderFrame
+    local Bar = Instance.new("Frame")
+    Bar.Size = UDim2.new(0.92, 0, 0, 6)
+    Bar.Position = UDim2.new(0.04, 0, 0.7, 0)
+    Bar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Bar.Parent = Frame
 
-    local UICornerBarBack = Instance.new("UICorner")
-    UICornerBarBack.CornerRadius = UDim.new(1, 0)
-    UICornerBarBack.Parent = BarBack
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.CornerRadius = UDim.new(1, 0)
+    BarCorner.Parent = Bar
 
-    local BarFill = Instance.new("Frame")
-    BarFill.Size = UDim2.new((defaultVal - minVal) / (maxVal - minVal), 0, 1, 0)
-    BarFill.BackgroundColor3 = Color3.fromRGB(0, 220, 110)
-    BarFill.BorderSizePixel = 0
-    BarFill.Parent = BarBack
+    local Fill = Instance.new("Frame")
+    Fill.Size = UDim2.new((defaultVal - minVal) / (maxVal - minVal), 0, 1, 0)
+    Fill.BackgroundColor3 = Color3.fromRGB(0, 220, 110)
+    Fill.Parent = Bar
 
-    local UICornerBarFill = Instance.new("UICorner")
-    UICornerBarFill.CornerRadius = UDim.new(1, 0)
-    UICornerBarFill.Parent = BarFill
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = Fill
 
-    local isSliding = false
-    local function UpdateSlider(input)
-        local pos = math.clamp((input.Position.X - BarBack.AbsolutePosition.X) / BarBack.AbsoluteSize.X, 0, 1)
+    local sliding = false
+    local function Update(input)
+        local pos = math.clamp((input.Position.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
         local val = math.floor(minVal + (maxVal - minVal) * pos)
-        BarFill.Size = UDim2.new(pos, 0, 1, 0)
-        ValueLabel.Text = tostring(val)
+        Fill.Size = UDim2.new(pos, 0, 1, 0)
+        ValLabel.Text = tostring(val)
         if callback then callback(val) end
     end
 
-    BarBack.InputBegan:Connect(function(input)
+    Bar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            isSliding = true
-            UpdateSlider(input)
+            sliding = true
+            Update(input)
         end
     end)
 
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            isSliding = false
+            sliding = false
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
-        if isSliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            UpdateSlider(input)
+        if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            Update(input)
         end
     end)
 end
 
-function Hub:CreateDropdown(parent, text, options, defaultOption, callback)
-    local DropdownFrame = Instance.new("Frame")
-    DropdownFrame.Name = text .. "DropdownFrame"
-    DropdownFrame.Size = UDim2.new(1, 0, 0, 42)
-    DropdownFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-    DropdownFrame.BorderSizePixel = 0
-    DropdownFrame.ClipsDescendants = true
-    DropdownFrame.Parent = parent
+-- Config Options
+Hub:CreateToggle(ConfigPage, "Bypass Anti-Cheat (حماية)", Hub.SafeMode, function(v) Hub.SafeMode = v end)
+Hub:CreateToggle(ConfigPage, "Auto Return to Plot (عودة)", Hub.AutoReturn, function(v) Hub.AutoReturn = v end)
+Hub:CreateToggle(ConfigPage, "Humanized Random Delays", Hub.HumanizedDelay, function(v) Hub.HumanizedDelay = v end)
+Hub:CreateSlider(ConfigPage, "Tween Speed (السرعة)", 50, 250, Hub.TweenSpeed, function(v) Hub.TweenSpeed = v end)
+Hub:CreateSlider(ConfigPage, "Fly Altitude Height", 10, 80, Hub.FlyHeight, function(v) Hub.FlyHeight = v end)
 
-    local UICornerDrop = Instance.new("UICorner")
-    UICornerDrop.CornerRadius = UDim.new(0, 6)
-    UICornerDrop.Parent = DropdownFrame
-
-    local DropTitle = Instance.new("TextLabel")
-    DropTitle.Size = UDim2.new(0.5, 0, 0, 42)
-    DropTitle.Position = UDim2.new(0.04, 0, 0, 0)
-    DropTitle.BackgroundTransparency = 1
-    DropTitle.Text = text
-    DropTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
-    DropTitle.TextXAlignment = Enum.TextXAlignment.Left
-    DropTitle.Font = Enum.Font.SourceSansBold
-    DropTitle.TextSize = 13
-    DropTitle.Parent = DropdownFrame
-
-    local SelectedLabel = Instance.new("TextLabel")
-    SelectedLabel.Size = UDim2.new(0.4, 0, 0, 42)
-    SelectedLabel.Position = UDim2.new(0.55, -25, 0, 0)
-    SelectedLabel.BackgroundTransparency = 1
-    SelectedLabel.Text = defaultOption or "ANY"
-    SelectedLabel.TextColor3 = Color3.fromRGB(0, 255, 140)
-    SelectedLabel.TextXAlignment = Enum.TextXAlignment.Right
-    SelectedLabel.Font = Enum.Font.SourceSansBold
-    SelectedLabel.TextSize = 13
-    SelectedLabel.Parent = DropdownFrame
-
-    local ToggleBtn = Instance.new("TextButton")
-    ToggleBtn.Size = UDim2.new(0, 25, 0, 25)
-    ToggleBtn.Position = UDim2.new(0.96, -25, 0.5, -12)
-    ToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ToggleBtn.Text = "▼"
-    ToggleBtn.Font = Enum.Font.SourceSansBold
-    ToggleBtn.TextSize = 10
-    ToggleBtn.Parent = DropdownFrame
-
-    local UICornerArrow = Instance.new("UICorner")
-    UICornerArrow.CornerRadius = UDim.new(0, 4)
-    UICornerArrow.Parent = ToggleBtn
-
-    local OptionListFrame = Instance.new("Frame")
-    OptionListFrame.Size = UDim2.new(1, -10, 0, #options * 28)
-    OptionListFrame.Position = UDim2.new(0, 5, 0, 45)
-    OptionListFrame.BackgroundTransparency = 1
-    OptionListFrame.Parent = DropdownFrame
-
-    local OptionListLayout = Instance.new("UIListLayout")
-    OptionListLayout.Parent = OptionListFrame
-    OptionListLayout.Padding = UDim.new(0, 2)
-
-    local isOpen = false
-    local function ToggleDropdown()
-        isOpen = not isOpen
-        if isOpen then
-            TweenService:Create(DropdownFrame, TweenInfo.new(0.25), {Size = UDim2.new(1, 0, 0, 45 + (#options * 30))}):Play()
-            ToggleBtn.Text = "▲"
-        else
-            TweenService:Create(DropdownFrame, TweenInfo.new(0.25), {Size = UDim2.new(1, 0, 0, 42)}):Play()
-            ToggleBtn.Text = "▼"
-        end
-    end
-
-    ToggleBtn.MouseButton1Click:Connect(ToggleDropdown)
-
-    for _, optName in ipairs(options) do
-        local OptBtn = Instance.new("TextButton")
-        OptBtn.Size = UDim2.new(1, 0, 0, 26)
-        OptBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        OptBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-        OptBtn.Text = optName
-        OptBtn.Font = Enum.Font.SourceSans
-        OptBtn.TextSize = 12
-        OptBtn.Parent = OptionListFrame
-
-        local UICornerOpt = Instance.new("UICorner")
-        UICornerOpt.CornerRadius = UDim.new(0, 4)
-        UICornerOpt.Parent = OptBtn
-
-        OptBtn.MouseButton1Click:Connect(function()
-            SelectedLabel.Text = optName
-            ToggleDropdown()
-            if callback then callback(optName) end
-        end)
-    end
-end
-
--- إضافة خيارات صفحة CONFIG
-Hub:CreateToggle(ConfigPage, "Fast Mode (السرعة الفائقة)", Hub.FastMode, function(val)
-    Hub.FastMode = val
+-- Player Options
+Hub:CreateSlider(PlayerPage, "WalkSpeed (سرعة المشي)", 16, 250, 16, function(v)
+    Hub.CustomSpeed = v
+    if Humanoid then Humanoid.WalkSpeed = v end
 end)
 
-Hub:CreateToggle(ConfigPage, "Skip if player within 60 studs", Hub.SkipPlayerNear, function(val)
-    Hub.SkipPlayerNear = val
-end)
-
-Hub:CreateToggle(ConfigPage, "Auto Return to Plot", Hub.AutoReturn, function(val)
-    Hub.AutoReturn = val
-end)
-
-Hub:CreateSlider(ConfigPage, "Max Target Distance", 500, 10000, Hub.TargetDistance, function(val)
-    Hub.TargetDistance = val
-end)
-
-Hub:CreateSlider(ConfigPage, "High Fly Height", 10, 80, Hub.FlyHeight, function(val)
-    Hub.FlyHeight = val
-end)
-
-local rarityList = {"ANY", "Rare", "Epic", "Legendary", "Mythic", "Divine", "Secret", "Eternal"}
-Hub:CreateDropdown(ConfigPage, "MINIMUM RARITY", rarityList, Hub.MinRarity, function(selected)
-    Hub.MinRarity = selected
-    Hub:Notify("Filter Updated", "تم تحديد الحد الأدنى للندرة: " .. selected, 2)
-end)
-
--- إضافة خيارات صفحة MISC
-Hub:CreateSlider(MiscPage, "Player WalkSpeed", 16, 250, 16, function(val)
-    Hub.CustomSpeed = val
-    if Humanoid then Humanoid.WalkSpeed = val end
-end)
-
-Hub:CreateSlider(MiscPage, "Player JumpPower", 50, 300, 50, function(val)
-    Hub.CustomJump = val
+Hub:CreateSlider(PlayerPage, "JumpPower (قوة القفز)", 50, 300, 50, function(v)
+    Hub.CustomJump = v
     if Humanoid then
         Humanoid.UseJumpPower = true
-        Humanoid.JumpPower = val
+        Humanoid.JumpPower = v
     end
 end)
 
--- Stats Display
-local StatsFrame = Instance.new("Frame")
-StatsFrame.Name = "StatsDisplayFrame"
-StatsFrame.Size = UDim2.new(1, 0, 0, 100)
-StatsFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-StatsFrame.BorderSizePixel = 0
-StatsFrame.Parent = MiscPage
+-- Misc Options & Server Controls
+local ServerHopBtn = Instance.new("TextButton")
+ServerHopBtn.Size = UDim2.new(1, 0, 0, 36)
+ServerHopBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ServerHopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ServerHopBtn.Text = "SERVER HOP (انتقال لسيرفر آخر)"
+ServerHopBtn.Font = Enum.Font.SourceSansBold
+ServerHopBtn.TextSize = 13
+ServerHopBtn.Parent = MiscPage
 
-local UICornerStats = Instance.new("UICorner")
-UICornerStats.CornerRadius = UDim.new(0, 8)
-UICornerStats.Parent = StatsFrame
+local HopCorner = Instance.new("UICorner")
+HopCorner.CornerRadius = UDim.new(0, 6)
+HopCorner.Parent = ServerHopBtn
 
-local StatsTitle = Instance.new("TextLabel")
-StatsTitle.Size = UDim2.new(1, -10, 0, 22)
-StatsTitle.Position = UDim2.new(0, 8, 0, 4)
-StatsTitle.BackgroundTransparency = 1
-StatsTitle.Text = "LIVE FARMING STATS"
-StatsTitle.TextColor3 = Color3.fromRGB(0, 255, 140)
-StatsTitle.TextXAlignment = Enum.TextXAlignment.Left
-StatsTitle.Font = Enum.Font.SourceSansBold
-StatsTitle.TextSize = 12
-StatsTitle.Parent = StatsFrame
-
-local StolenText = Instance.new("TextLabel")
-StolenText.Size = UDim2.new(1, -16, 0, 20)
-StolenText.Position = UDim2.new(0, 8, 0, 30)
-StolenText.BackgroundTransparency = 1
-StolenText.Text = "Total Eggs Stolen: 0"
-StolenText.TextColor3 = Color3.fromRGB(220, 220, 220)
-StolenText.TextXAlignment = Enum.TextXAlignment.Left
-StolenText.Font = Enum.Font.SourceSans
-StolenText.TextSize = 13
-StolenText.Parent = StatsFrame
-
-local TimeText = Instance.new("TextLabel")
-TimeText.Size = UDim2.new(1, -16, 0, 20)
-TimeText.Position = UDim2.new(0, 8, 0, 52)
-TimeText.BackgroundTransparency = 1
-TimeText.Text = "Elapsed Time: 00:00:00"
-TimeText.TextColor3 = Color3.fromRGB(220, 220, 220)
-TimeText.TextXAlignment = Enum.TextXAlignment.Left
-TimeText.Font = Enum.Font.SourceSans
-TimeText.TextSize = 13
-TimeText.Parent = StatsFrame
-
-task.spawn(function()
-    while task.wait(1) do
-        if StatsFrame and StatsFrame.Parent then
-            StolenText.Text = "Total Eggs Stolen: " .. tostring(Hub.Stats.TotalStolen)
-            TimeText.Text = "Elapsed Time: " .. Hub:GetFormattedTime()
-        end
-    end
-end)
-
--- Server Hop, Rejoin & Fly Mods
-function Hub:ServerHop()
-    Hub:Notify("Server Hop", "جاري البحث عن سيرفر آخر...", 3)
+ServerHopBtn.MouseButton1Click:Connect(function()
+    Hub:Notify("Server Hop", "جاري البحث عن سيرفر آخر...")
     pcall(function()
-        local servers = {}
-        local req = request or http_request or (syn and syn.request) or (http and http.request)
-        if req then
-            local response = req({
-                Url = "https://games.roblox.com/v1/games/" .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100",
-                Method = "GET"
-            })
-            if response and response.Body then
-                local body = HttpService:JSONDecode(response.Body)
-                if body and body.data then
-                    for _, v in pairs(body.data) do
-                        if v.playing < v.maxPlayers and v.id ~= game.JobId then
-                            table.insert(servers, v.id)
-                        end
-                    end
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    end)
+end)
+
+-- ================================================================================
+-- SECTION 16: MAIN FARMING EXECUTION LOOP
+-- ================================================================================
+function Hub.MainFarmLoop()
+    while Hub.IsFarming do
+        pcall(function()
+            -- Auto pick nearest target if none selected
+            if not Hub.SelectedTarget or not Hub.SelectedTarget.Parent then
+                local list = Hub:ScanServerEggs()
+                if #list > 0 then
+                    Hub.SelectedTarget = list[1].Object
                 end
             end
-        end
 
-        if #servers > 0 then
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], LocalPlayer)
-        else
-            TeleportService:Teleport(game.PlaceId, LocalPlayer)
-        end
-    end)
-end
-
-function Hub:RejoinServer()
-    Hub:Notify("Rejoin", "جاري إعادة الاتصال بالسيرفر...", 2)
-    pcall(function()
-        if #Players:GetPlayers() <= 1 then
-            TeleportService:Teleport(game.PlaceId, LocalPlayer)
-        else
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-        end
-    end)
-end
-
-Hub.IsFlying = false
-function Hub:ToggleFly(state)
-    Hub.IsFlying = state
-    pcall(function()
-        local bodyVel = HumanoidRootPart:FindFirstChild("OnHubFlyVelocity")
-        local bodyGyro = HumanoidRootPart:FindFirstChild("OnHubFlyGyro")
-
-        if state then
-            if not bodyVel then
-                bodyVel = Instance.new("BodyVelocity")
-                bodyVel.Name = "OnHubFlyVelocity"
-                bodyVel.MaxForce = Vector3.new(4e5, 4e5, 4e5)
-                bodyVel.Velocity = Vector3.new(0, 0.1, 0)
-                bodyVel.Parent = HumanoidRootPart
-            end
-
-            if not bodyGyro then
-                bodyGyro = Instance.new("BodyGyro")
-                bodyGyro.Name = "OnHubFlyGyro"
-                bodyGyro.MaxTorque = Vector3.new(4e5, 4e5, 4e5)
-                bodyGyro.CFrame = HumanoidRootPart.CFrame
-                bodyGyro.Parent = HumanoidRootPart
-            end
-
-            task.spawn(function()
-                while Hub.IsFlying and HumanoidRootPart do
-                    local camCFrame = Workspace.CurrentCamera.CFrame
-                    local moveDir = Vector3.new()
-
-                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camCFrame.LookVector end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camCFrame.LookVector end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCFrame.RightVector end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCFrame.RightVector end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
-                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0, 1, 0) end
-
-                    bodyVel.Velocity = moveDir * 60
-                    bodyGyro.CFrame = camCFrame
-                    task.wait()
+            -- Step 1: Teleport to Opponent Chicken first
+            if Hub.AutoStealChicken then
+                local chicken = Hub:FindOpponentChicken()
+                if chicken then
+                    Hub:SafeBypassMove(chicken.CFrame)
+                    task.wait(0.2)
+                    Hub:TriggerPrompt(chicken)
+                    task.wait(0.25)
                 end
-                if bodyVel then bodyVel:Destroy() end
-                if bodyGyro then bodyGyro:Destroy() end
-            end)
-        else
-            if bodyVel then bodyVel:Destroy() end
-            if bodyGyro then bodyGyro:Destroy() end
-        end
-    end)
+            end
+
+            -- Step 2: Teleport to Target Egg
+            if Hub.AutoStealEgg and Hub.SelectedTarget and Hub.SelectedTarget.Parent then
+                Hub:SafeBypassMove(Hub.SelectedTarget.CFrame)
+                task.wait(0.2)
+                Hub:TriggerPrompt(Hub.SelectedTarget)
+            end
+
+            -- Step 3: Return safely to plot
+            if Hub.AutoReturn then
+                task.wait(0.25)
+                Hub:SafeBypassMove(Hub:GetPlayerBaseLocation())
+            end
+
+            Hub.Stats.TotalStolen = Hub.Stats.TotalStolen + 1
+        end)
+
+        task.wait(Hub.SafeMode and math.random(18, 26) / 10 or 1.2)
+    end
 end
 
-Hub:CreateToggle(MiscPage, "Fly / Float Mod (طيران احتياطي)", false, function(state)
-    Hub:ToggleFly(state)
-end)
-
-local HopBtn = Instance.new("TextButton")
-HopBtn.Name = "ServerHopButton"
-HopBtn.Size = UDim2.new(1, 0, 0, 38)
-HopBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-HopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-HopBtn.Text = "SERVER HOP (الانتقال لسيرفر آخر) 🌐"
-HopBtn.Font = Enum.Font.SourceSansBold
-HopBtn.TextSize = 13
-HopBtn.Parent = MiscPage
-
-local UICornerHop = Instance.new("UICorner")
-UICornerHop.CornerRadius = UDim.new(0, 6)
-UICornerHop.Parent = HopBtn
-
-HopBtn.MouseButton1Click:Connect(function()
-    Hub:ServerHop()
-end)
-
-local RejoinBtn = Instance.new("TextButton")
-RejoinBtn.Name = "RejoinButton"
-RejoinBtn.Size = UDim2.new(1, 0, 0, 38)
-RejoinBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-RejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-RejoinBtn.Text = "REJOIN SERVER (إعادة الدخول) 🔄"
-RejoinBtn.Font = Enum.Font.SourceSansBold
-RejoinBtn.TextSize = 13
-RejoinBtn.Parent = MiscPage
-
-local UICornerRejoin = Instance.new("UICorner")
-UICornerRejoin.CornerRadius = UDim.new(0, 6)
-UICornerRejoin.Parent = RejoinBtn
-
-RejoinBtn.MouseButton1Click:Connect(function()
-    Hub:RejoinServer()
-end)
-
-local UnloadBtn = Instance.new("TextButton")
-UnloadBtn.Name = "UnloadButton"
-UnloadBtn.Size = UDim2.new(1, 0, 0, 38)
-UnloadBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
-UnloadBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-UnloadBtn.Text = "DESTROY SCRIPT (إغلاق السكربت بالكامل) ❌"
-UnloadBtn.Font = Enum.Font.SourceSansBold
-UnloadBtn.TextSize = 13
-UnloadBtn.Parent = MiscPage
-
-local UICornerUnload = Instance.new("UICorner")
-UICornerUnload.CornerRadius = UDim.new(0, 6)
-UICornerUnload.Parent = UnloadBtn
-
-UnloadBtn.MouseButton1Click:Connect(function()
-    Hub.IsFarming = false
-    Hub:ToggleFly(false)
-    if CoreGui:FindFirstChild("HusseinOnHubMaster") then
-        CoreGui.HusseinOnHubMaster:Destroy()
+StartFarmBtn.MouseButton1Click:Connect(function()
+    Hub.IsFarming = not Hub.IsFarming
+    if Hub.IsFarming then
+        StartFarmBtn.Text = "STOP FARMING"
+        StartFarmBtn.BackgroundColor3 = Color3.fromRGB(220, 40, 40)
+        Hub:Notify("Farming Started", "تم تشغيل المزرعة بنجاح!")
+        task.spawn(Hub.MainFarmLoop)
+    else
+        StartFarmBtn.Text = "START FARM"
+        StartFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+        Hub:Notify("Farming Stopped", "تم إيقاف المزرعة.")
     end
-    Hub:Notify("OnHub Unloaded", "تم إغلاق السكربت بنجاح.", 2)
 end)
 
--- ==================================================
--- التشغيل الأولي والتكرار
--- ==================================================
-
--- تحديث الواجهة عند التشغيل
-Hub:RefreshTargetsUI()
-
--- تحديث القائمة تلقائياً كل 5 ثوانٍ
+-- Background Auto Refresh
 task.spawn(function()
-    while task.wait(5) do
+    while task.wait(3) do
         if not Hub.IsFarming then
             Hub:RefreshTargetsUI()
         end
     end
 end)
 
-Hub:Notify("Hussein Master OnHub", "تم تحميل السكربت بنجاح وبشكل كامل!", 3)
-print("==================================================")
-print("Hussein OnHub Edition - Full Script Loaded Successfully!")
-print("==================================================")
-
+-- Initial UI Setup
+Hub:RefreshTargetsUI()
+Hub:Notify("Hussein Master OnHub", "تم تحميل السكربت الشامل بنجاح!")
